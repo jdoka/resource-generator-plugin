@@ -1,0 +1,17 @@
+group 'ru.dvd.devops.mss.plugins'
+version '1.0.0'
+
+apply plugin: 'groovy'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    compile project(":core")
+    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.0-alpha-4'
+    compile group: 'org.thymeleaf', name: 'thymeleaf', version: '3.0.6.RELEASE'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
