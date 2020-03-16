@@ -1,0 +1,49 @@
+group 'ru.dvd.devops.mss.plugins'
+version "1.0.0"
+
+apply plugin: 'groovy'
+apply plugin: "java-gradle-plugin"
+apply plugin: 'maven'
+
+buildscript {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.0-alpha-4'
+    compile project(":core")
+
+    compile project(":vcs-git")
+    compile project(":jetty-jndi-generator")
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile gradleTestKit()
+}
+
+gradlePlugin {
+    plugins {
+        jndiResources {
+            id = "ru.dvd.devops.jndi-resources"
+            implementationClass = "ru.dvd.devops.jndi.gradle.plugin.JndiResourcesPlugin"
+        }
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            mavenLocal()
+            repository(url: "file:/Users/user/.m2/repository")
+            pom.artifactId = "${project.name}"
+            pom.version = "$buildVersion-SNAPSHOT"
+        }
+    }
+}

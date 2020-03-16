@@ -1,0 +1,11 @@
+{
+  "jndiResources": {
+    "outputDir" : ".",
+    "jndi": {
+      "datasource":{
+        "name" : "jdbc/monitoring",
+        "description" : "Доступ к БД мониторинга"
+      }
+    }
+  }
+}

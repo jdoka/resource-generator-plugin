@@ -1,0 +1,141 @@
+
+jndiResources {
+    outputDir = "."
+    jndi {
+        dataSource {
+            name = "jdbc/monitoring"
+            description = 'Доступ к БД мониторинга'
+            username = 'monitoring'
+            password = 'password'
+            url = 'jdbc:oracle:...'
+            driver = 'com.oracle.Driver'
+        }
+        dataSource {
+            name = "jdbc/history"
+            description = 'Доступ к БД истории'
+            username = 'istory'
+            password = 'password'
+            url = 'jdbc:oracle:...'
+            driver = 'com.oracle.Driver'
+        }
+        connectionFactory {
+            name = "jms/monitoringCF"
+            url = "tcp://localhost:61616"
+            description = 'Фабрика соединений с брокером очередей мониторинга'
+        }
+        queue {
+            name = "jms/monitoringQueue"
+            description = 'Очередь мониторинга'
+            target = "Q.MONITORING"
+        }
+    }
+}
+
+
+allprojects {
+    group 'ru.druzhinin.newlinesoft'
+    version = "1.0"
+
+    apply plugin: 'java'
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        maven {
+            url "file:/Users/user/.m2/repository"
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}
+
+String resolveConfigDir() {
+    String configDirPropertyName = 'CONFIG_PATH'
+    String dir
+    if (System.env[configDirPropertyName]) {
+        dir = System.env[configDirPropertyName]
+    } else if (System.getProperty(configDirPropertyName)) {
+        dir = System.getProperty(configDirPropertyName)
+    } else {
+        dir = file("$rootDir/etc").path
+    }
+    if (new File(dir).exists()) {
+        return dir
+    }
+    throw new GradleScriptException("Please setup '$configDirPropertyName'", null)
+}
+
+ext.configDir = resolveConfigDir()
+
+def readConfig() {
+    Properties config = new Properties()
+    new File("$configDir/application.properties").withReader { reader -> config.load(reader) }
+    println "Application properties: $config"
+    return config
+}
+
+ext.config = readConfig()
+
+apply from: 'gradle/dependencies.gradle'
+
+apply plugin: 'org.akhikhl.gretty'
+
+dependencies {
+    gretty libs.commonsDBCP       // required for 'farmRun' task
+//    gretty libs.activemqClient
+
+    gretty files(configDir)
+//    gretty libs.oracleJdbc                          // required for WorkManager
+    gretty 'xerces:xercesImpl:2.11.0'
+}
+
+//////////////////////////
+// jetty configuration
+//////////////////////////
+
+task _prepareJetty(type: Copy) {
+    def templateUrl = "${configDir}/templates/jetty.xml"
+    def configPath = "${configDir}/application.properties"
+
+    inputs.file templateUrl
+    inputs.file configPath
+    outputs.file "$configDir/generated/jetty.xml"
+
+    from templateUrl
+    into "$configDir/generated"
+    rename { 'jetty.xml' }
+    filter(ReplaceTokens, tokens: config)
+}
+
+afterEvaluate {
+    project.tasks.withType(FarmStartTask).each {
+        it.dependsOn(_prepareJetty)
+    }
+}
+farms {
+    farm 'ServerApp', {
+        include 'server-app'
+    }
+}
+gretty {
+    scanInterval = 1 //Scan for changes every second
+    host = '0.0.0.0' //Enable network access from outside your local machine
+    serverConfigFile = "$configDir/generated/jetty.xml"//custom  settings for ServletContainer
+    servletContainer = 'jetty9' //Jetty9 supports Servlet API 3.0
+    managedClassReload = true //Activate spring-loaded class reloading
+    recompileOnSourceChange = false
+    springBoot = false
+    debugSuspend = false
+    jvmArgs = [
+            "-DconfigDir=$configDir",
+            "-Dlogback.configurationFile=${file(configDir).toPath().toUri()}/logback.xml",
+            "-Dclient.encoding.override=UTF-8",
+            "-Dfile.encoding=UTF-8",
+            "-XX:+CMSClassUnloadingEnabled",
+            "-Dorg.eclipse.jetty.annotations.maxWait=120", // scanning for SCI may take too much time (60 sec is default)
+    ]
+}
