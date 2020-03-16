@@ -2,7 +2,6 @@ group 'ru.dvd.devops.plugins'
 version "1.0.0"
 
 apply plugin: 'groovy'
-apply plugin: "java-gradle-plugin"
 apply plugin: 'maven'
 
 buildscript {
@@ -18,6 +17,11 @@ repositories {
 }
 
 dependencies {
+    compile group: 'org.apache.maven', name: 'maven-plugin-api', version: '3.6.3'
+    compile group: 'org.apache.maven', name: 'maven-core', version: '3.6.3'
+    compile group: 'org.apache.maven.plugin-tools', name: 'maven-plugin-annotations', version: '3.6.0'
+    compile group: 'org.javassist', name: 'javassist', version: '3.26.0-GA'
+
     compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.0-alpha-4'
     compile project(":core")
 
@@ -26,15 +30,6 @@ dependencies {
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile gradleTestKit()
-}
-
-gradlePlugin {
-    plugins {
-        jndiResources {
-            id = "ru.dvd.devops.jndi-resources"
-            implementationClass = "ru.dvd.devops.jndi.gradle.plugin.JndiResourcesPlugin"
-        }
-    }
 }
 
 uploadArchives {
