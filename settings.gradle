@@ -1,0 +1,10 @@
+rootProject.name = 'generate-resources'
+include 'core'
+include 'gradle-plugin'
+include 'vcs-git'
+include 'jetty-jndi-generator'
+
+findProject(':vcs-git')?.projectDir = new File("$rootDir/spi-default-impl/vcs-git")
+findProject(':jetty-jndi-generator')?.projectDir = new File("$rootDir/spi-default-impl/jetty-jndi-generator")
+
+
