@@ -76,7 +76,7 @@ class JndiResourcesPluginTest {
         def git = Git.init().setDirectory(testProjectDir.root).call()
         git.commit().setMessage("initial commit").call()
         writeFile(release1buildFileContent, buildFile)
-//        println "Release 1 build script:\n" + release1buildFileContent + "\n=============\n"
+        println "Release 1 build script:\n" + release1buildFileContent + "\n=============\n"
         git.add().addFilepattern(".").call()
         println git.status().call().added
         def firstCommit = git.commit().setMessage("release 1 done").call()
@@ -86,7 +86,7 @@ class JndiResourcesPluginTest {
         buildFile = testProjectDir.newFile("build.gradle")
         writeFile(release2buildFileContent, buildFile)
         git.add().addFilepattern(".").call()
-//        println "Release 2 build script:\n" + release2buildFileContent + "\n=============\n"
+        println "Release 2 build script:\n" + release2buildFileContent + "\n=============\n"
         git.commit().setMessage("release 2 done").call()
         git.gc().call()
         git.checkout().setName(firstCommit.name).call()
@@ -101,8 +101,6 @@ class JndiResourcesPluginTest {
 
         def jettyFileContent = new File(testProjectDir.root, "jetty.xml").newReader("utf8").text
         def diffFileContent = new File(testProjectDir.root, "diff.xml").newReader("utf8").text
-//        println "Generated jetty.xml:\n" + jettyFileContent
-//        println "Generated diff.xml:\n" + diffFileContent
         assertTrue(jettyFileContent.contains("threadPool"))
         assertTrue(jettyFileContent.contains("111"))
         assertEquals result.task(":generateJndiResources").outcome, TaskOutcome.SUCCESS

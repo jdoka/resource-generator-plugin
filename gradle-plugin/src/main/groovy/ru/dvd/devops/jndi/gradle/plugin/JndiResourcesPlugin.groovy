@@ -12,8 +12,6 @@ import ru.dvd.devops.jndi.core.JndiResourcesProcessor
 import ru.dvd.devops.jndi.gradle.plugin.mapper.TaskConfigMapper
 import ru.dvd.devops.jndi.gradle.plugin.task.TaskConfig
 
-//todo: починить логгирование
-
 @SuppressWarnings("GroovyUnusedDeclaration")
 class JndiResourcesPlugin implements Plugin<Project> {
 
@@ -54,9 +52,9 @@ class JndiResourcesPlugin implements Plugin<Project> {
     }
 
 //    todo: сейчас не работает. нужно научиться рефрешить gradle Project при изменении build файла.
-//    если невозможно средстави gradle api, можно поступить следующим образом: создавать программно новый project на основе свежего  build файла
+//    если невозможно средствами gradle api, можно поступить следующим образом: создавать программно новый project на основе свежего build файла
 //    в крайнем случае можно вручную пропарсить файл и вытащить конфиг(не рекомендуется).
-    private refreshProject(Project project) {
+    private static refreshProject(Project project) {
         def container = project.tasks
         def build = container.findByName("init") as InitBuild
         build.setupProjectLayout()
