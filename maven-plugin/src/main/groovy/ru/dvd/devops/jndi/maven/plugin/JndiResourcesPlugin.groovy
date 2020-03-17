@@ -1,6 +1,5 @@
 package ru.dvd.devops.jndi.maven.plugin
 
-import org.apache.maven.model.Plugin
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugin.MojoFailureException
@@ -10,6 +9,7 @@ import org.apache.maven.plugins.annotations.Parameter
 import org.apache.maven.project.MavenProject
 import ru.dvd.devops.jndi.core.JndiResourcesProcessor
 
+//todo: реализовать maven plugin
 @Mojo(name = "generateResources", defaultPhase = LifecyclePhase.PROCESS_CLASSES, threadSafe = true)
 class JndiResourcesPlugin extends AbstractMojo {
 
