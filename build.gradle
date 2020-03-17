@@ -1,2 +1,2 @@
-group 'ru.dvd.devops.mss.plugins'
+group 'ru.dvd.devops.plugins'
 version "1.0.0"

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="http://www.padual.com/java/logback.xsd"
+               scan="true" scanPeriod="10 seconds">
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+     ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <charset>UTF-8</charset>
+            <!--<charset>cp866</charset>-->
+            <!--<charset>Windows1251</charset>-->
+            <!--colored-->
+<!--            <pattern>%green(%d{ISO8601}) %highlight(%-5p) %gray([%X] [%c{3}]) %gray(%t) %m %n</pattern>-->
+            <!--<pattern>%d{ISO8601} %-5p [%X] [%c{3}] %t %m %n</pattern>-->
+        </encoder>
+    </appender>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
