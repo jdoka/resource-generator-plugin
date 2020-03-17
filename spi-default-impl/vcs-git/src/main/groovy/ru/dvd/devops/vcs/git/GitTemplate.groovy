@@ -32,34 +32,33 @@ class GitTemplate<T> implements VcsOperations<T> {
 
     @Override
     T doInLastTaggedCommit(Closure<T> action, T defaultValue) {
+        doInTaggedCommit(action, defaultValue)
+    }
+
+    @Override
+    T doInTaggedCommit(Closure<T> action, T defaultValue, String... tags) {
         git.gc().call()
         RevCommit lastCommit = getLastCommit()
-        Optional<RevCommit> lastTaggedCommit = getLastTaggedCommit()
+        Optional<RevCommit> lastTaggedCommit = getLastTaggedCommit(tags)
         T result
         if (lastTaggedCommit.present) {
-            logger.trace("pre first checkout {}", lastTaggedCommit.get().name)
+            logger.trace("Nearly checkout to {}", lastTaggedCommit.get().name)
             git
                     .checkout()
                     .setName(lastTaggedCommit.get().name)
                     .call()
-            logger.trace("after first checkout")
+            logger.trace("After checkout to {}", lastTaggedCommit.get().name)
             result = action.call()
-            logger.trace("pre second checkout")
+            logger.trace("Nearly checkout to {}", lastCommit.name)
             git
                     .checkout()
                     .setName(lastCommit.name)
                     .call()
-            logger.trace("after second checkout")
+            logger.trace("After checkout to {}", lastCommit.name)
         } else {
             result = defaultValue
         }
         result
-    }
-
-    @Override
-    T doInTaggedCommit(Closure<T> action, T defaultValue, String tag) {
-        //todo: реализовать
-        return defaultValue
     }
 
     /**
@@ -71,18 +70,19 @@ class GitTemplate<T> implements VcsOperations<T> {
     }
 
     /**
-     * Возвращает последний теггированный коммит.
+     * Возвращает последний коммит, теггированный tagNames. Если tagNames пусто, то любым тегом.
      */
-    private Optional<RevCommit> getLastTaggedCommit() {
+    private Optional<RevCommit> getLastTaggedCommit(String... tagNames) {
         List<Ref> tags = git.tagList().call()
         logger.trace("Total tags: {}", tags.size())
         Set<ObjectId> taggedCommitIds = tags.stream()
+                .map({ walk.parseTag(it.objectId) })
+                .filter({ tagNames.toList().isEmpty() ? true : tagNames.contains(it.tagName) })
                 .map({
-                    def tag = walk.parseTag(it.objectId)
-                    def refTag = git.repository.findRef("refs/tags/" + tag.tagName)
+                    def refTag = git.repository.findRef("refs/tags/" + it.tagName)
                     refTag.peeledObjectId
                 })
-                .filter({ it != null })
+                .filter({ Objects.nonNull(it) })
                 .collect(Collectors.toSet())
 
         //идем по истории коммитов, находим последний теггированный.
