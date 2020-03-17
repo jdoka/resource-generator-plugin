@@ -39,26 +39,8 @@ class GitTemplate<T> implements VcsOperations<T> {
     T doInTaggedCommit(Closure<T> action, T defaultValue, String... tags) {
         git.gc().call()
         RevCommit lastCommit = getLastCommit()
-        Optional<RevCommit> lastTaggedCommit = getLastTaggedCommit(tags)
-        T result
-        if (lastTaggedCommit.present) {
-            logger.trace("Nearly checkout to {}", lastTaggedCommit.get().name)
-            git
-                    .checkout()
-                    .setName(lastTaggedCommit.get().name)
-                    .call()
-            logger.trace("After checkout to {}", lastTaggedCommit.get().name)
-            result = action.call()
-            logger.trace("Nearly checkout to {}", lastCommit.name)
-            git
-                    .checkout()
-                    .setName(lastCommit.name)
-                    .call()
-            logger.trace("After checkout to {}", lastCommit.name)
-        } else {
-            result = defaultValue
-        }
-        result
+        RevCommit lastTaggedCommit = getLastTaggedCommit(tags)
+        Objects.nonNull(lastTaggedCommit) ? doInCommit(lastTaggedCommit, lastCommit, action) : defaultValue
     }
 
     /**
@@ -72,7 +54,7 @@ class GitTemplate<T> implements VcsOperations<T> {
     /**
      * Возвращает последний коммит, теггированный tagNames. Если tagNames пусто, то любым тегом.
      */
-    private Optional<RevCommit> getLastTaggedCommit(String... tagNames) {
+    private RevCommit getLastTaggedCommit(String... tagNames) {
         List<Ref> tags = git.tagList().call()
         logger.trace("Total tags: {}", tags.size())
         Set<ObjectId> taggedCommitIds = tags.stream()
@@ -91,14 +73,38 @@ class GitTemplate<T> implements VcsOperations<T> {
             currentCommit = walk.parseCommit(currentCommit.toObjectId())
             if (taggedCommitIds.contains(currentCommit.toObjectId())) {
                 logger.trace("Find last tagged commit, {}", currentCommit.name())
-                return Optional.of(currentCommit)
+                return currentCommit
             }
             if (currentCommit.parents && currentCommit.parentCount > 0) {
                 currentCommit = currentCommit.getParent(0)
             } else {
                 logger.trace("Tagged commit not found")
-                return Optional.empty()
+                return null
             }
         }
+    }
+
+    /**
+     * Выполнить action на коммите commit.
+     *
+     * @param commit коммит, на который требуется checkout перед выполнением action.
+     * @param commitToBack коммит, на который следует вернуться после выполнения action.
+     * @return результат выполнения action.
+     */
+    private T doInCommit(RevCommit commit, RevCommit commitToBack, Closure<T> action) {
+        logger.trace("Nearly checkout to {}", commit.name)
+        git
+                .checkout()
+                .setName(commit.name)
+                .call()
+        logger.trace("After checkout to {}", commit.name)
+        T result = action.call()
+        logger.trace("Nearly checkout to {}", commitToBack.name)
+        git
+                .checkout()
+                .setName(commitToBack.name)
+                .call()
+        logger.trace("After checkout to {}", commitToBack.name)
+        result
     }
 }
