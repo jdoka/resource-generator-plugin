@@ -1,0 +1,71 @@
+<th:block>
+<!-- Jetty server configuration file template. -->
+<!-- File is used for automatic generation of jetty.xml while project runs through build process. -->
+</th:block>
+
+<Configure id="Server" class="org.eclipse.jetty.server.Server">
+
+    <th:block th:if="${!context.jndiResources.dataSources.empty}">
+    <!-- =========================================================== -->
+    <!-- JNDI Data Source Configuration                              -->
+    <!-- =========================================================== -->
+    </th:block>
+    <New th:each="it : ${context.jndiResources.dataSources}" th:id="${it.name}" class="org.eclipse.jetty.plus.jndi.Resource">
+        <Arg/>
+        <Arg th:text="${it.name}">dataSource</Arg>
+        <Arg>
+            <New class="org.apache.commons.dbcp.BasicDataSource">
+                <Set name="driverClassName" th:text="${it.driver}">@db.driverClass@</Set>
+                <Set name="url" th:text="${it.url}">@db.url@</Set>
+                <Set name="username" th:text="${it.username}">@app.db.username@</Set>
+                <Set name="password" th:text="${it.password}">@app.db.password@</Set>
+                <Set name="initialSize">5</Set>
+                <Set name="ъ
+                ">5000</Set>
+                <Set name="maxActive">20</Set>
+                <Set name="maxIdle">5</Set>
+                <Set name="validationQuery">select 1 from dual</Set>
+            </New>
+        </Arg>
+    </New>
+
+    <th:block th:if="${!context.jndiResources.connectionFactories.empty || !context.jndiResources.queues.empty}">
+    <!-- =========================================================== -->
+    <!-- JNDI Queue Configuration                                    -->
+    <!-- =========================================================== -->
+    </th:block>
+    <New th:each="it : ${context.jndiResources.connectionFactories}" th:id="${it.name}" id="cf" class="org.eclipse.jetty.plus.jndi.Resource">
+        <Arg th:text="${it.name}">jms/cf</Arg>
+        <Arg>
+            <New class="org.apache.activemq.ActiveMQConnectionFactory">
+                <Arg>tcp://localhost:61616</Arg>
+            </New>
+        </Arg>
+    </New>
+    <New th:each="it : ${context.jndiResources.queues}" th:id="${it.name}" id="queue" class="org.eclipse.jetty.plus.jndi.Resource">
+        <Arg th:text="${it.name}">jms/queue</Arg>
+        <Arg>
+            <New class="org.apache.activemq.command.ActiveMQQueue">
+                <Arg th:text="${#strings.defaultString(it.target,'queue')}">MONITORING.EVENTS</Arg>
+            </New>
+        </Arg>
+    </New>
+     <th:block th:if="${!context.jndiResources.executors.empty}">
+   <!-- =========================================================== -->
+    <!-- JNDI WorkManager and TimerManager configuration             -->
+    <!-- =========================================================== -->
+    </th:block>
+    <New  th:each="it : ${context.jndiResources.executors}" th:id="${it.name}" id="wm" class="org.eclipse.jetty.plus.jndi.Resource">
+        <Arg/>
+        <Arg th:text="${it.name}">wm/default</Arg>
+        <Arg>
+            <New class="java.util.concurrent.ScheduledThreadPoolExecutor">
+                <Arg>
+                    <New class="java.lang.Integer">
+                        <Arg th:text="${it.size}">10</Arg>
+                    </New>
+                </Arg>
+            </New>
+        </Arg>
+    </New>
+</Configure>

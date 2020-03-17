@@ -23,10 +23,10 @@ interface VcsOperations<T> {
 
     /**
      *
-     * Выполняет {@code action} на коммите с тегом {@code tag}.
+     * Выполняет {@code action} на коммите с тегом {@code tags}.
      * После выполения переключается обратно на последний коммит текущей ветки.
      * @return результат выполения {@code action}. {@code defaultValue}, если результатом выполнения является null.
      */
-    T doInTaggedCommit(Closure<T> action, T defaultValue, String tag)
+    T doInTaggedCommit(Closure<T> action, T defaultValue, String... tags)
 
 }

@@ -1,0 +1,18 @@
+<th:block>
+Следующие ресурсы были добавлены в контейнер
+</th:block>
+
+<New th:each="it : ${context.jndiResources.dataSources}" th:id="${it.name}"/>
+<New th:each="it : ${context.jndiResources.connectionFactories}" th:id="${it.name}"/>
+<New th:each="it : ${context.jndiResources.queues}" th:id="${it.name}"/>
+<New th:each="it : ${context.jndiResources.executors}" th:id="${it.name}"/>
+
+
+<th:block>
+Следующие ресурсы были удалены из контейнера
+</th:block>
+
+<New th:each="it : ${context.removedJndiResources.dataSources}" th:id="${it.name}"/>
+<New th:each="it : ${context.removedJndiResources.connectionFactories}" th:id="${it.name}"/>
+<New th:each="it : ${context.removedJndiResources.queues}" th:id="${it.name}"/>
+<New th:each="it : ${context.removedJndiResources.executors}" th:id="${it.name}"/>
